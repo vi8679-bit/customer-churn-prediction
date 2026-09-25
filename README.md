@@ -1,126 +1,62 @@
-# Customer Churn Prediction using Machine Learning
+ Customer Churn Prediction (Telecom)
 
-## Overview
+Predicting which telecom customers are likely to cancel, and explaining *why*, so a retention team knows who to contact and what to offer. Built on 7,043 customers from the IBM Telco dataset, where about 26.5% of customers churned.
 
-Customer churn prediction is a common problem in business analytics where the goal is to identify customers who are likely to stop using a service. Predicting churn helps companies take proactive steps to retain customers and reduce revenue loss.
-
-This project builds a machine learning pipeline to analyze customer data and predict whether a customer will churn based on demographic, account, and service-related features.
-
-The project demonstrates a full data science workflow including data cleaning, exploratory data analysis, feature preprocessing, model training, and model evaluation.
+<img width="790" height="940" alt="shap_summary" src="https://github.com/user-attachments/assets/dfd828eb-25ef-4221-a59a-51e92e2e4e5a" />
 
 
-## Problem Statement
+## Key findings
 
-Customer retention is a major challenge for subscription-based businesses. When customers leave a service, companies lose recurring revenue and acquisition costs increase.
+- **Contract type is the biggest driver.** Month-to-month customers churn far more than one- or two-year customers; a two-year contract is the single strongest signal that a customer will stay.
+- **New customers are the highest risk.** Short tenure pushes churn risk up sharply; risk falls the longer someone stays.
+- **Fiber optic and electronic-check customers churn more,** even after accounting for contract and tenure, which points to possible price/value or service-quality issues worth investigating.
+- **Add-ons like Online Security and Tech Support are associated with lower churn.**
 
-The objective of this project is to develop a predictive model that classifies whether a customer is likely to churn using historical customer data.
+<img width="989" height="490" alt="contract_vs_churn" src="https://github.com/user-attachments/assets/ad664437-7f22-4fd2-b4a6-012825049750" />
 
+**Business takeaway:** the highest-value retention target is a new, month-to-month customer, especially on fiber. Offering a discounted move to a 1-year contract or bundling Tech Support/Online Security is the lever the model points to.
+
+## Model results (held-out test set, 1,409 customers, 374 churners)
+
+| Model | ROC-AUC | PR-AUC | Churners caught (recall) | Precision |
+|---|---|---|---|---|
+| Logistic Regression | 0.842 | 0.632 | 57% | 0.66 |
+| Random Forest | 0.843 | 0.657 | 52% | 0.68 |
+| **XGBoost (tuned)** | **0.846** | **0.663** | **79% (297 / 374)** | 0.52 |
+
+The tuned XGBoost model uses class weighting (`scale_pos_weight`) to prioritize catching churners. It finds **297 of 374** churners vs. 212 for Logistic Regression, at the cost of more false positives. For retention campaigns that trade-off usually makes sense, since contacting a loyal customer is cheap compared to losing one.
+
+## Approach
+
+1. **Data cleaning:** converted `TotalCharges` to numeric (11 blank values for brand-new customers, imputed), dropped the ID column, encoded the target.
+2. **EDA:** churn by contract type, tenure, monthly charges, and services.
+3. **Encoding and scaling:** one-hot encoding for categorical features, standard scaling for Logistic Regression.
+4. **Models:** Logistic Regression, Random Forest, and XGBoost with class weighting.
+5. **Hyperparameter tuning:** `GridSearchCV` over 729 XGBoost configurations (3-fold CV, optimizing F1).
+6. **Evaluation:** ROC-AUC, PR-AUC, precision/recall/F1 on the churn class, confusion matrices, and threshold analysis.
+7. **Explainability:** SHAP summary and dependence plots to show how each feature pushes an individual prediction up or down.
 
 ## Dataset
 
-This project uses a customer churn dataset containing customer demographics, service subscriptions, and billing information.
+[Telco Customer Churn (IBM sample data, Kaggle)](https://www.kaggle.com/datasets/blastchar/telco-customer-churn): 7,043 customers with demographics, account details (tenure, contract, billing), and subscribed services.
 
-### Target Variable
+## How to run
 
-Churn
+```bash
+pip install -r requirements.txt
+jupyter notebook customer_churn_prediction.ipynb
+```
 
-* Yes - customer leaves the service
-* No - customer continues using the service
+The notebook downloads the data automatically with `kagglehub`.
 
-### Example Features
+## Tech stack
 
-* gender
-* SeniorCitizen
-* tenure
-* InternetService
-* Contract
-* MonthlyCharges
-* TotalCharges
+Python · pandas · NumPy · scikit-learn · XGBoost · SHAP · Matplotlib · Seaborn
 
-These variables capture both demographic and behavioral aspects of customer activity.
+## Next steps
 
+- Choose the decision threshold on a validation split using a simple cost model (retention offer cost vs. customer lifetime value).
+- Score customers into risk tiers (high / medium / low) and present them in a Power BI or Tableau dashboard.
 
-## Exploratory Data Analysis
-
-Exploratory data analysis was performed to understand patterns related to customer churn.
-
-Key analyses included:
-
-* distribution of customer tenure
-* churn distribution across contract types
-* relationship between monthly charges and churn
-* service subscription analysis
-* correlation between numerical variables
-
-These analyses help identify the factors most strongly associated with customer attrition.
-
-## Data Preprocessing
-
-Before model training, several preprocessing steps were applied:
-
-* handling missing values
-* encoding categorical variables
-* scaling numerical variables
-* train-test split for model evaluation
-
-These steps ensure that the dataset is suitable for machine learning algorithms.
-
-
-## Machine Learning Models
-
-Multiple supervised learning models were evaluated to predict customer churn.
-
-Models implemented include:
-
-* Logistic Regression
-* Random Forest
-* Decision Tree
-
-These models are widely used for binary classification tasks and allow comparison between linear and tree-based approaches.
-
-
-## Model Evaluation
-
-The models were evaluated using common classification metrics:
-
-* Accuracy
-* Precision
-* Recall
-* F1 Score
-
-Confusion matrices were also used to visualize classification performance and understand prediction errors.
-
-
-## Key Insights
-
-Exploratory analysis suggests several important factors influencing customer churn:
-
-* customers with shorter tenure are more likely to churn
-* higher monthly charges are associated with higher churn rates
-* contract type strongly affects retention
-* customers with longer service relationships tend to remain loyal
-
-These insights can help businesses develop targeted retention strategies.
-
-
-
-## Technologies Used
-
-Python
-pandas
-NumPy
-scikit-learn
-Matplotlib
-Seaborn
-
-
-
-## Future Improvements
-
-Possible improvements for this project include:
-
-* implementing gradient boosting models such as XGBoost or LightGBM
-* hyperparameter optimization
-* feature importance analysis
-* deployment of the model as a prediction dashboard
-
+---
+**Author:** Indraneel Mannava · [LinkedIn](https://www.linkedin.com/in/indraneel-sarma-mannava/)
