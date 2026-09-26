@@ -1,4 +1,4 @@
- Customer Churn Prediction (Telecom)
+# Customer Churn Prediction (Telecom)
 
 Predicting which telecom customers are likely to cancel, and explaining *why*, so a retention team knows who to contact and what to offer. Built on 7,043 customers from the IBM Telco dataset, where about 26.5% of customers churned.
 
